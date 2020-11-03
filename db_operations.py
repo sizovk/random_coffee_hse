@@ -32,7 +32,8 @@ class UsersData:
     def __create_table_if_not_exists(self):
         self.__db_cursor.execute("""CREATE TABLE IF NOT EXISTS Users(
                 chat_id INTEGER NOT NULL UNIQUE,
-                name TEXT
+                name TEXT,
+                department TEXT
         )""")
         self.commit()
     
@@ -54,6 +55,23 @@ class UsersData:
         self.__insert_user_if_not_in_db(chat_id)
         self.__db_cursor.execute(
             "SELECT name FROM Users WHERE chat_id=?",
+            (chat_id,)
+        )
+        items = self.__db_cursor.fetchall()
+        return items[0][0]
+
+    def set_department(self, chat_id, department):
+        self.__insert_user_if_not_in_db(chat_id)
+        self.__db_cursor.execute(
+            "UPDATE Users SET department=? WHERE chat_id=?",
+            (department, chat_id)
+        )
+        self.commit()
+
+    def get_department(self, chat_id):
+        self.__insert_user_if_not_in_db(chat_id)
+        self.__db_cursor.execute(
+            "SELECT department FROM Users WHERE chat_id=?",
             (chat_id,)
         )
         items = self.__db_cursor.fetchall()
