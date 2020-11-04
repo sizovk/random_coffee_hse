@@ -1,4 +1,5 @@
 import sqlite3
+from states import *
 
 
 class UsersData:
@@ -32,6 +33,7 @@ class UsersData:
     def __create_table_if_not_exists(self):
         self.__db_cursor.execute("""CREATE TABLE IF NOT EXISTS Users(
                 chat_id INTEGER NOT NULL UNIQUE,
+                state INTEGER,
                 name TEXT,
                 department TEXT
         )""")
@@ -76,3 +78,26 @@ class UsersData:
         )
         items = self.__db_cursor.fetchall()
         return items[0][0]
+
+    def set_state(self, chat_id, state):
+        self.__insert_user_if_not_in_db(chat_id)
+        self.__db_cursor.execute(
+            "UPDATE Users SET state=? WHERE chat_id=?",
+            (state, chat_id)
+        )
+        self.commit()
+
+    def get_state(self, chat_id):
+        self.__insert_user_if_not_in_db(chat_id)
+        self.__db_cursor.execute(
+            "SELECT state FROM Users WHERE chat_id=?",
+            (chat_id,)
+        )
+        items = self.__db_cursor.fetchall()
+        return items[0][0]
+
+    def authorize(self, chat_id):
+        name = self.get_username(chat_id)
+        department = self.get_department(chat_id)
+        if name and department:
+            self.set_state(chat_id, AUTHORIZED)
