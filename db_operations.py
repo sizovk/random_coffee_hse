@@ -95,9 +95,3 @@ class UsersData:
         )
         items = self.__db_cursor.fetchall()
         return items[0][0]
-
-    def authorize(self, chat_id):
-        name = self.get_username(chat_id)
-        department = self.get_department(chat_id)
-        if name and department:
-            self.set_state(chat_id, AUTHORIZED)
