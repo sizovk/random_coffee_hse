@@ -1,7 +1,10 @@
 from aiogram import Bot, types
 from aiogram.dispatcher import Dispatcher
 from aiogram.utils import executor
+from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 import sqlite3
+from random import randint
+import smtplib
 
 from config import TOKEN
 from db_operations import UsersData
@@ -51,8 +54,35 @@ def is_correct_email(email):
     return False
 
 
-def is_correct_code(code):
-    return True
+def is_correct_auth_code(auth_code, chat_id):
+    with UsersData(DB_LOCATION) as db:
+        correct_auth_code = db.get_auth_code(chat_id)
+    return (auth_code == correct_auth_code)
+
+
+def send_auth_code(chat_id):
+    auth_code = randint(1000, 9999)
+    with UsersData(DB_LOCATION) as db:
+        db.set_auth_code(chat_id, auth_code)
+    with UsersData(DB_LOCATION) as db:
+        email = db.get_email(chat_id)
+
+    smtpObj = smtplib.SMTP('smtp.gmail.com', 587)
+    smtpObj.starttls()
+    smtpObj.login("randomcoffeehse@gmail.com", "qwerty!23")
+    subject = "Authorization code"
+    to_email = email
+    from_email = "randomcoffeehse@gmail.com"
+    text = str(auth_code)
+    body = "\r\n".join((
+    f"From: {from_email}",
+    f"To: {to_email}",
+    f"Subject: {subject}",
+    "",
+    text
+    ))
+    smtpObj.sendmail(from_email, [to_email], body)
+    smtpObj.quit()
 
 
 @dp.message_handler(commands=['help'])
@@ -99,12 +129,22 @@ async def set_email_message(message):
             message.from_user.id,
             "Почта введена верно. В течение минуты вам на почту придет код авторизации."
         )
+
+        keyboard = InlineKeyboardMarkup()
+        change_email_button = InlineKeyboardButton(
+            text="Сменить почту", callback_data="change_email")
+        resend_code_button = InlineKeyboardButton(
+            text="Отправить письмо заново", callback_data="resend_code")
+        keyboard.add(change_email_button)
+        keyboard.add(resend_code_button)
+
         await bot.send_message(
             message.from_user.id,
-            "Введите код авторизации."
+            "Введите код авторизации.",
+            reply_markup=keyboard
         )
 
-        #TODO: Отправка письма с кодом авторизации
+        send_auth_code(message.from_user.id)
 
         with UsersData(DB_LOCATION) as db:
             db.set_state(message.from_user.id, SET_CODE_AUTHORIZATION)
@@ -117,12 +157,8 @@ async def set_email_message(message):
 
 @dp.message_handler(lambda message: is_set_code_authorization_state(message.from_user.id))
 async def set_code_authorization_email_message(message):
-
-    #TODO: Инлайн-кнопка запрос на смену почты
-    #TODO: Инлайн-кнопка запрос на повторную отправку кода
-
     code = message.text
-    if is_correct_code(code):
+    if is_correct_auth_code(code, message.from_user.id):
         await bot.send_message(
             message.from_user.id,
             "Код введен верно. Перейдем к заполнению анкеты."
@@ -170,6 +206,25 @@ async def message_to_not_authorized_person(message):
         message.from_user.id,
         "Вам необходимо пройти авторизацию.\n\
         Для уточнения подробностей введите /start."
+    )
+
+
+@dp.callback_query_handler(lambda call: call.data == "change_email")
+async def change_email_message(call):
+    await bot.send_message(
+        call.from_user.id,
+        "Введите новую почту."
+    )
+    with UsersData(DB_LOCATION) as db:
+        db.set_state(call.from_user.id, SET_EMAIL)
+
+
+@dp.callback_query_handler(lambda call: call.data == "resend_code")
+async def resend_code_message(call):
+    send_auth_code(call.from_user.id)
+    await bot.send_message(
+        call.from_user.id,
+        "Новый код отправлен на вашу почту."
     )
 
 
