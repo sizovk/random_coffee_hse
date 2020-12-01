@@ -1,5 +1,4 @@
 import sqlite3
-from states import *
 
 
 class UsersData:
@@ -35,7 +34,9 @@ class UsersData:
                 chat_id INTEGER NOT NULL UNIQUE,
                 state INTEGER,
                 name TEXT,
-                department TEXT
+                department TEXT,
+                email TEXT,
+                auth_code TEXT
         )""")
         self.commit()
     
@@ -95,3 +96,37 @@ class UsersData:
         )
         items = self.__db_cursor.fetchall()
         return items[0][0]
+
+    def set_email(self, chat_id, email):
+        self.__insert_user_if_not_in_db(chat_id)
+        self.__db_cursor.execute(
+            "UPDATE Users SET email=? WHERE chat_id=?",
+            (email, chat_id)
+        )
+        self.commit()
+
+    def get_email(self, chat_id):
+        self.__insert_user_if_not_in_db(chat_id)
+        self.__db_cursor.execute(
+            "SELECT email FROM Users WHERE chat_id=?",
+            (chat_id,)
+        )
+        items = self.__db_cursor.fetchall()
+        return items[0][0]
+
+    def set_auth_code(self, chat_id, auth_code):
+        self.__insert_user_if_not_in_db(chat_id)
+        self.__db_cursor.execute(
+            "UPDATE Users SET auth_code=? WHERE chat_id=?",
+            (auth_code, chat_id)
+        )
+        self.commit()
+
+    def get_auth_code(self, chat_id):
+        self.__insert_user_if_not_in_db(chat_id)
+        self.__db_cursor.execute(
+            "SELECT auth_code FROM Users WHERE chat_id=?",
+            (chat_id,)
+        )
+        items = self.__db_cursor.fetchall()
+        return str(items[0][0])
