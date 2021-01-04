@@ -1,5 +1,4 @@
-from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
-
+from aiogram.types import ReplyKeyboardMarkup, ReplyKeyboardRemove, KeyboardButton
 from misc import dp, bot
 import logic.auth_logic as auth
 from utils.db_operations import UsersData
@@ -10,15 +9,15 @@ from data.config import DB_LOCATION
 @dp.message_handler(lambda message: auth.is_authorized(message.from_user.id))
 async def message_to_authorized_person(message):
     with UsersData(DB_LOCATION) as db:
-        name = db.get_username(message.from_user.id)
+        city = db.get_city(message.from_user.id)
         department = db.get_department(message.from_user.id)
-        email = db.get_email(message.from_user.id)
+        social_network = db.get_social_network(message.from_user.id)
     await bot.send_message(
         message.from_user.id,
-        f"Вы прошли авторизацию.\n\
-        Ваше имя - {name}\n\
-        Ваш факультет - {department}\n\
-        Ваша почта - {email}."
+        f"Вы прошли авторизацию.\n" +
+        f"Ваш город - {city}\n" + 
+        f"Ваш факультет - {department}\n" +
+        f"Ваша страница в социальной сети - {social_network}."
     )
 
 
@@ -33,11 +32,9 @@ async def set_email_message(message):
             "Почта введена верно. В течение минуты вам на почту придет код авторизации."
         )
 
-        keyboard = InlineKeyboardMarkup()
-        change_email_button = InlineKeyboardButton(
-            text="Сменить почту", callback_data="change_email")
-        resend_code_button = InlineKeyboardButton(
-            text="Отправить письмо заново", callback_data="resend_code")
+        keyboard = ReplyKeyboardMarkup()
+        change_email_button = KeyboardButton(text="Сменить почту")
+        resend_code_button = KeyboardButton(text="Отправить письмо заново")
         keyboard.add(change_email_button)
         keyboard.add(resend_code_button)
 
@@ -60,18 +57,44 @@ async def set_email_message(message):
 
 @dp.message_handler(lambda message: auth.is_set_code_authorization_state(message.from_user.id))
 async def set_code_authorization_email_message(message):
+    if message.text == "Сменить почту":
+        await bot.send_message(
+            message.from_user.id,
+            "Введите новую почту."
+        )
+        with UsersData(DB_LOCATION) as db:
+            db.set_state(message.from_user.id, SET_EMAIL)
+        return
+    elif message.text == 'Отправить письмо заново':
+        auth.send_auth_code(message.from_user.id)
+        await bot.send_message(
+            message.from_user.id,
+            "Новый код отправлен на вашу почту."
+        )
+        return
     code = message.text
     if auth.is_correct_auth_code(code, message.from_user.id):
         await bot.send_message(
             message.from_user.id,
-            "Код введен верно. Перейдем к заполнению анкеты."
-        )
-        await bot.send_message(
-            message.from_user.id,
-            "Введите Ваше имя."
+            "Код введен верно. Перейдем к заполнению анкеты.",
+            reply_markup=ReplyKeyboardRemove(),
         )
         with UsersData(DB_LOCATION) as db:
-            db.set_state(message.from_user.id, SET_USERNAME)
+            db.set_state(message.from_user.id, SET_CITY)
+        keyboard = ReplyKeyboardMarkup()
+        msc_button = KeyboardButton(text="Москва")
+        sp_button = KeyboardButton(text="Санкт-Петербург")
+        nn_button = KeyboardButton(text="Нижний Новгород")
+        perm_button = KeyboardButton(text="Пермь")
+        keyboard.add(msc_button)
+        keyboard.add(sp_button)
+        keyboard.add(nn_button)
+        keyboard.add(perm_button)
+        await bot.send_message(
+            message.from_user.id,
+            "Выберите ваш город.",
+            reply_markup=keyboard
+        )
     else:
         await bot.send_message(
             message.from_user.id,
@@ -79,28 +102,45 @@ async def set_code_authorization_email_message(message):
         )
 
 
-@dp.message_handler(lambda message: auth.is_set_username_state(message.from_user.id))
-async def set_username_message(message):
-    with UsersData(DB_LOCATION) as db:
-        db.set_username(message.from_user.id, message.text)
-    await bot.send_message(
-        message.from_user.id,
-        f"Введите название Вашего факультета."
-    )
-    with UsersData(DB_LOCATION) as db:
-        db.set_state(message.from_user.id, SET_DEPARTMENT)
+@dp.message_handler(lambda message: auth.is_set_city_state(message.from_user.id))
+async def set_city_message(message):
+    available_cities = ['Москва', 'Санкт-Петербург', 'Нижний Новгород', 'Пермь']
+    if message.text in available_cities:
+        with UsersData(DB_LOCATION) as db:
+            db.set_city(message.from_user.id, message.text)
+            db.set_state(message.from_user.id, SET_DEPARTMENT)
+            await bot.send_message(
+                message.from_user.id,
+                "Введите название вашего факультета",
+                reply_markup=ReplyKeyboardRemove(),
+            )
+    else:
+        await bot.send_message(
+            message.from_user.id,
+            "Введите корректный город.",
+        )
 
 
 @dp.message_handler(lambda message: auth.is_set_department_state(message.from_user.id))
 async def set_department_message(message):
     with UsersData(DB_LOCATION) as db:
         db.set_department(message.from_user.id, message.text)
+        db.set_state(message.from_user.id, SET_SOCIAL_NETWORK)
+        await bot.send_message(
+            message.from_user.id,
+            "Введите ссылку на вашу страницу в социальной сети."
+        )
+
+
+@dp.message_handler(lambda message: auth.is_set_social_network_state(message.from_user.id))
+async def set_social_network_message(message):
     with UsersData(DB_LOCATION) as db:
+        db.set_social_network(message.from_user.id, message.text)
         db.set_state(message.from_user.id, AUTHORIZED)
         await bot.send_message(
-        message.from_user.id,
-        "Авторизация завершена."
-    )
+            message.from_user.id,
+            "Авторизация завершена."
+        )
 
 
 @dp.message_handler(lambda message: auth.is_not_authorized(message.from_user.id))
@@ -109,23 +149,4 @@ async def message_to_not_authorized_person(message):
         message.from_user.id,
         "Вам необходимо пройти авторизацию.\n\
         Для уточнения подробностей введите /start."
-    )
-
-
-@dp.callback_query_handler(lambda call: call.data == "change_email")
-async def change_email_message(call):
-    await bot.send_message(
-        call.from_user.id,
-        "Введите новую почту."
-    )
-    with UsersData(DB_LOCATION) as db:
-        db.set_state(call.from_user.id, SET_EMAIL)
-
-
-@dp.callback_query_handler(lambda call: call.data == "resend_code")
-async def resend_code_message(call):
-    auth.send_auth_code(call.from_user.id)
-    await bot.send_message(
-        call.from_user.id,
-        "Новый код отправлен на вашу почту."
     )
