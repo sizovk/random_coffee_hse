@@ -19,20 +19,20 @@ def is_set_code_authorization_state(chat_id):
     with UsersData(DB_LOCATION) as db:
         return db.get_state(chat_id) == SET_CODE_AUTHORIZATION
 
-
-def is_set_username_state(chat_id):
+def is_set_city_state(chat_id):
     with UsersData(DB_LOCATION) as db:
-        return db.get_state(chat_id) == SET_USERNAME
-
+        return db.get_state(chat_id) == SET_CITY
 
 def is_set_department_state(chat_id):
     with UsersData(DB_LOCATION) as db:
         return db.get_state(chat_id) == SET_DEPARTMENT
 
+def is_set_social_network_state(chat_id):
+    with UsersData(DB_LOCATION) as db:
+        return db.get_state(chat_id) == SET_SOCIAL_NETWORK
 
 def is_not_authorized(chat_id):
     with UsersData(DB_LOCATION) as db:
-        print(db.get_state(chat_id))
         return db.get_state(chat_id) == None
 
 

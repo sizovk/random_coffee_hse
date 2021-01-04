@@ -33,8 +33,9 @@ class UsersData:
         self.__db_cursor.execute("""CREATE TABLE IF NOT EXISTS Users(
                 chat_id INTEGER NOT NULL UNIQUE,
                 state INTEGER,
-                name TEXT,
+                city TEXT,
                 department TEXT,
+                social_network TEXT,
                 email TEXT,
                 auth_code TEXT
         )""")
@@ -46,18 +47,18 @@ class UsersData:
             (chat_id,)
         )
 
-    def set_username(self, chat_id, name):
+    def set_city(self, chat_id, city):
         self.__insert_user_if_not_in_db(chat_id)
         self.__db_cursor.execute(
-            "UPDATE Users SET name=? WHERE chat_id=?",
-            (name, chat_id)
+            "UPDATE Users SET city=? WHERE chat_id=?",
+            (city, chat_id)
         )
         self.commit()
 
-    def get_username(self, chat_id):
+    def get_city(self, chat_id):
         self.__insert_user_if_not_in_db(chat_id)
         self.__db_cursor.execute(
-            "SELECT name FROM Users WHERE chat_id=?",
+            "SELECT city FROM Users WHERE chat_id=?",
             (chat_id,)
         )
         items = self.__db_cursor.fetchall()
@@ -75,6 +76,23 @@ class UsersData:
         self.__insert_user_if_not_in_db(chat_id)
         self.__db_cursor.execute(
             "SELECT department FROM Users WHERE chat_id=?",
+            (chat_id,)
+        )
+        items = self.__db_cursor.fetchall()
+        return items[0][0]
+
+    def set_social_network(self, chat_id, social_network):
+        self.__insert_user_if_not_in_db(chat_id)
+        self.__db_cursor.execute(
+            "UPDATE Users SET social_network=? WHERE chat_id=?",
+            (social_network, chat_id)
+        )
+        self.commit()
+
+    def get_social_network(self, chat_id):
+        self.__insert_user_if_not_in_db(chat_id)
+        self.__db_cursor.execute(
+            "SELECT social_network FROM Users WHERE chat_id=?",
             (chat_id,)
         )
         items = self.__db_cursor.fetchall()
