@@ -1,4 +1,5 @@
 import sqlite3
+from data.states import AUTHORIZED
 
 
 class UsersData:
@@ -46,6 +47,15 @@ class UsersData:
             "INSERT OR IGNORE INTO Users(chat_id) VALUES(?)",
             (chat_id,)
         )
+
+    def get_all_authorized(self):
+        self.__db_cursor.execute(
+            "SELECT * FROM Users WHERE state=?",
+            (AUTHORIZED,)
+        )
+        items = self.__db_cursor.fetchall()
+        print(items)
+        return items
 
     def set_city(self, chat_id, city):
         self.__insert_user_if_not_in_db(chat_id)
