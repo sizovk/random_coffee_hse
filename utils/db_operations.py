@@ -1,5 +1,5 @@
 import sqlite3
-from data.states import AUTHORIZED
+from data.states import AUTHORIZED, ACCEPT_MEETING
 
 
 class UsersData:
@@ -54,7 +54,14 @@ class UsersData:
             (AUTHORIZED,)
         )
         items = self.__db_cursor.fetchall()
-        print(items)
+        return items
+
+    def get_all_accept_meeting_from_city(self, city):
+        self.__db_cursor.execute(
+            "SELECT * FROM Users WHERE state=? AND city=?",
+            (ACCEPT_MEETING, city,)
+        )
+        items = self.__db_cursor.fetchall()
         return items
 
     def set_city(self, chat_id, city):
