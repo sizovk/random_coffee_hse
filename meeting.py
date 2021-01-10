@@ -21,6 +21,8 @@ async def main():
                     first_id,
                     "К сожалению, мы не смогли подобрать вам пару на этой неделе.",
                 )
+                with UsersData(DB_LOCATION) as db:
+                    db.set_state(first_id, AUTHORIZED)
                 continue
 
             second_id = pair[1][0]
@@ -44,11 +46,14 @@ async def main():
 def pair_up(users):
     pairs = list()
     while len(users) >= 2:
+        pair = []
         first = randint(0, len(users) - 1)
+        pair.append(users[first])
         users.pop(first)
         second = randint(0, len(users) - 1)
+        pair.append(users[second])
         users.pop(second)
-        pairs.append([first, second])
+        pairs.append(pair)
     if len(users) == 1:
         pairs.append([users[0]])
     return pairs
