@@ -41,6 +41,9 @@ async def main():
             )
             with UsersData(DB_LOCATION) as db:
                 db.set_state(second_id, AUTHORIZED)
+
+            with UsersData(DB_LOCATION) as db:
+                db.add_meeting(first_id, second_id)
         
         
 def pair_up(users):

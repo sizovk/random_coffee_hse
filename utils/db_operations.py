@@ -40,6 +40,10 @@ class UsersData:
                 email TEXT,
                 auth_code TEXT
         )""")
+        self.__db_cursor.execute("""CREATE TABLE IF NOT EXISTS Meetings(
+                first_id INTEGER,
+                second_id INTEGER,
+        )""")
         self.commit()
     
     def __insert_user_if_not_in_db(self, chat_id):
@@ -165,3 +169,11 @@ class UsersData:
         )
         items = self.__db_cursor.fetchall()
         return str(items[0][0])
+
+    def add_meeting(self, first_id, second_id):
+        if first_id > second_id:
+            first_id, second_id = second_id, first_id
+        self.__db_cursor.execute(
+            "INSERT OR IGNORE INTO Meetings(first_id, second_id) VALUES(?, ?)",
+            (first_id, second_id, )
+        )
