@@ -48,18 +48,30 @@ async def main():
         
 def pair_up(users):
     pairs = list()
-    while len(users) >= 2:
-        pair = []
+    for _ in range(len(users)):
+        if len(users) == 0:
+            break
         first = randint(0, len(users) - 1)
-        pair.append(users[first])
-        users.pop(first)
         second = randint(0, len(users) - 1)
-        pair.append(users[second])
-        users.pop(second)
-        pairs.append(pair)
-    if len(users) == 1:
-        pairs.append([users[0]])
+        if first == second:
+            continue
+        if not met_before(users[first], users[second]):
+            pairs.append([users[first], users[second]])
+            users.pop(first)
+            users.pop(second)
+    for i in range(len(users)):
+        pairs.append([users[i]])
     return pairs
+
+
+def met_before(first_user, second_user):
+    first_id = first_user[0]
+    second_id = second_user[0]
+    with UsersData(DB_LOCATION) as db:
+        meeting = db.get_meeting(first_id, second_id)
+        if len(meeting) == 0:
+            return False
+        return True
 
 
 if __name__ == "__main__":

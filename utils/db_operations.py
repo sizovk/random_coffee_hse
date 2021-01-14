@@ -42,7 +42,7 @@ class UsersData:
         )""")
         self.__db_cursor.execute("""CREATE TABLE IF NOT EXISTS Meetings(
                 first_id INTEGER,
-                second_id INTEGER,
+                second_id INTEGER
         )""")
         self.commit()
     
@@ -177,3 +177,13 @@ class UsersData:
             "INSERT OR IGNORE INTO Meetings(first_id, second_id) VALUES(?, ?)",
             (first_id, second_id, )
         )
+    
+    def get_meeting(self, first_id, second_id):
+        if first_id > second_id:
+            first_id, second_id = second_id, first_id
+        self.__db_cursor.execute(
+            "SELECT * FROM Meetings WHERE first_id=? AND second_id=?",
+            (first_id, second_id,)
+        )
+        items = self.__db_cursor.fetchall()
+        return items
