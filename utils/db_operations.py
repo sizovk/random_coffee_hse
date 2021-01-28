@@ -1,4 +1,5 @@
 import sqlite3
+from data.states import AUTHORIZED, ACCEPT_MEETING
 
 
 class UsersData:
@@ -39,6 +40,10 @@ class UsersData:
                 email TEXT,
                 auth_code TEXT
         )""")
+        self.__db_cursor.execute("""CREATE TABLE IF NOT EXISTS Meetings(
+                first_id INTEGER,
+                second_id INTEGER
+        )""")
         self.commit()
     
     def __insert_user_if_not_in_db(self, chat_id):
@@ -46,6 +51,22 @@ class UsersData:
             "INSERT OR IGNORE INTO Users(chat_id) VALUES(?)",
             (chat_id,)
         )
+
+    def get_all_authorized(self):
+        self.__db_cursor.execute(
+            "SELECT * FROM Users WHERE state=?",
+            (AUTHORIZED,)
+        )
+        items = self.__db_cursor.fetchall()
+        return items
+
+    def get_all_accept_meeting_from_city(self, city):
+        self.__db_cursor.execute(
+            "SELECT * FROM Users WHERE state=? AND city=?",
+            (ACCEPT_MEETING, city,)
+        )
+        items = self.__db_cursor.fetchall()
+        return items
 
     def set_city(self, chat_id, city):
         self.__insert_user_if_not_in_db(chat_id)
@@ -148,3 +169,21 @@ class UsersData:
         )
         items = self.__db_cursor.fetchall()
         return str(items[0][0])
+
+    def add_meeting(self, first_id, second_id):
+        if first_id > second_id:
+            first_id, second_id = second_id, first_id
+        self.__db_cursor.execute(
+            "INSERT OR IGNORE INTO Meetings(first_id, second_id) VALUES(?, ?)",
+            (first_id, second_id, )
+        )
+    
+    def get_meeting(self, first_id, second_id):
+        if first_id > second_id:
+            first_id, second_id = second_id, first_id
+        self.__db_cursor.execute(
+            "SELECT * FROM Meetings WHERE first_id=? AND second_id=?",
+            (first_id, second_id,)
+        )
+        items = self.__db_cursor.fetchall()
+        return items

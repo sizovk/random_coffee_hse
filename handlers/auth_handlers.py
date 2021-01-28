@@ -4,6 +4,7 @@ import logic.auth_logic as auth
 from utils.db_operations import UsersData
 from data.states import *
 from data.config import DB_LOCATION
+from data.cities import cities
 
 
 @dp.message_handler(lambda message: auth.is_authorized(message.from_user.id))
@@ -82,14 +83,9 @@ async def set_code_authorization_email_message(message):
         with UsersData(DB_LOCATION) as db:
             db.set_state(message.from_user.id, SET_CITY)
         keyboard = ReplyKeyboardMarkup()
-        msc_button = KeyboardButton(text="Москва")
-        sp_button = KeyboardButton(text="Санкт-Петербург")
-        nn_button = KeyboardButton(text="Нижний Новгород")
-        perm_button = KeyboardButton(text="Пермь")
-        keyboard.add(msc_button)
-        keyboard.add(sp_button)
-        keyboard.add(nn_button)
-        keyboard.add(perm_button)
+        for city in cities:
+            button = KeyboardButton(text=city)
+            keyboard.add(button)
         await bot.send_message(
             message.from_user.id,
             "Выберите ваш город.",
@@ -104,8 +100,7 @@ async def set_code_authorization_email_message(message):
 
 @dp.message_handler(lambda message: auth.is_set_city_state(message.from_user.id))
 async def set_city_message(message):
-    available_cities = ['Москва', 'Санкт-Петербург', 'Нижний Новгород', 'Пермь']
-    if message.text in available_cities:
+    if message.text in cities:
         with UsersData(DB_LOCATION) as db:
             db.set_city(message.from_user.id, message.text)
             db.set_state(message.from_user.id, SET_DEPARTMENT)

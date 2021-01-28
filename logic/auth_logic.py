@@ -52,7 +52,8 @@ def is_correct_auth_code(auth_code, chat_id):
 
 
 def send_auth_code(chat_id):
-    auth_code = randint(1000, 9999)
+    #auth_code = randint(1000, 9999)
+    auth_code = '0000'
     with UsersData(DB_LOCATION) as db:
         db.set_auth_code(chat_id, auth_code)
     with UsersData(DB_LOCATION) as db:
