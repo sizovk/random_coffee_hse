@@ -1,10 +1,10 @@
 from aiogram.types import ReplyKeyboardMarkup, ReplyKeyboardRemove, KeyboardButton
 from data.states import *
-from data.config import DB_LOCATION
+from data.config import DB_LOCATION, MAX_FAILURES
 from utils.db_operations import UsersData
 from misc import dp, bot
 from aiogram.utils import executor
-from random import randint
+from random import randint, choice
 from data.cities import cities
 
 
@@ -12,7 +12,7 @@ async def main():
     for city in cities:
         with UsersData(DB_LOCATION) as db:
             users = db.get_all_accept_meeting_from_city(city)
-        pairs = pair_up(users)
+        pairs = pair_up(set(users))
         for pair in pairs:
             first_id = pair[0][0]
             first_social_network = pair[0][4]
@@ -48,19 +48,22 @@ async def main():
         
 def pair_up(users):
     pairs = list()
-    for _ in range(len(users)):
-        if len(users) == 0:
+    failures = 0
+    while failures < MAX_FAILURES:
+        if len(users) < 2:
             break
-        first = randint(0, len(users) - 1)
-        second = randint(0, len(users) - 1)
-        if first == second:
-            continue
-        if not met_before(users[first], users[second]):
-            pairs.append([users[first], users[second]])
-            users.pop(first)
-            users.pop(second)
-    for i in range(len(users)):
-        pairs.append([users[i]])
+        first_user = choice(tuple(users))
+        users.remove(first_user)
+        second_user = choice(tuple(users))
+        users.remove(second_user)
+        if not met_before(first_user, second_user):
+            pairs.append([first_user, second_user])
+        else:
+            failures += 1
+            users.add(first_user)
+            users.add(second_user)
+    for user in users:
+        pairs.append([user, ])
     return pairs
 
 
