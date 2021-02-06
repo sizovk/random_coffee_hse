@@ -6,6 +6,7 @@ from misc import dp, bot
 from aiogram.utils import executor
 from random import randint, choice
 from data.cities import cities
+from data.messages_base import messages_base
 
 
 async def main():
@@ -19,7 +20,7 @@ async def main():
             if len(pair) == 1:
                 await bot.send_message(
                     first_id,
-                    "К сожалению, мы не смогли подобрать вам пару на этой неделе.",
+                    messages_base['unsuccessful_matching'],
                 )
                 with UsersData(DB_LOCATION) as db:
                     db.set_state(first_id, AUTHORIZED)
@@ -30,14 +31,14 @@ async def main():
 
             await bot.send_message(
                 first_id,
-                f"Мы подобрали вам пару, {second_social_network}",
+                messages_base['successful_matching'].format(social_network=second_social_network),
             )
             with UsersData(DB_LOCATION) as db:
                 db.set_state(first_id, AUTHORIZED)
 
             await bot.send_message(
                 second_id,
-                f"Мы подобрали вам пару, {first_social_network}",
+                messages_base['successful_matching'].format(social_network=first_social_network),
             )
             with UsersData(DB_LOCATION) as db:
                 db.set_state(second_id, AUTHORIZED)
@@ -58,6 +59,7 @@ def pair_up(users):
         users.remove(second_user)
         if not met_before(first_user, second_user):
             pairs.append([first_user, second_user])
+            failures = 0
         else:
             failures += 1
             users.add(first_user)

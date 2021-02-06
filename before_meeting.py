@@ -4,6 +4,7 @@ from data.config import DB_LOCATION
 from utils.db_operations import UsersData
 from misc import dp, bot
 from aiogram.utils import executor
+from data.messages_base import messages_base
 
 
 async def main():
@@ -19,7 +20,7 @@ async def main():
         chat_id = user[0]
         await bot.send_message(
             chat_id,
-            "Вы готовы к встрече на следующей неделе?\n",
+            messages_base['before_meeting'],
             reply_markup=keyboard,
         )
         with UsersData(DB_LOCATION) as db:
