@@ -4,7 +4,7 @@ from data.config import DB_LOCATION
 from utils.db_operations import UsersData
 from misc import dp, bot
 from aiogram.utils import executor
-from data.messages_base import messages_base
+from data.yml_config import messages_base
 
 
 async def main():

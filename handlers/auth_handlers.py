@@ -5,15 +5,11 @@ from utils.db_operations import UsersData
 from data.states import *
 from data.config import DB_LOCATION
 from data.cities import cities
-from data.messages_base import messages_base
+from data.yml_config import messages_base, faculty_base
 
 
 @dp.message_handler(lambda message: auth.is_authorized(message.from_user.id))
 async def message_to_authorized_person(message):
-    with UsersData(DB_LOCATION) as db:
-        city = db.get_city(message.from_user.id)
-        department = db.get_department(message.from_user.id)
-        social_network = db.get_social_network(message.from_user.id)
     await bot.send_message(
         message.from_user.id,
         messages_base['auth']
@@ -102,11 +98,17 @@ async def set_city_message(message):
         with UsersData(DB_LOCATION) as db:
             db.set_city(message.from_user.id, message.text)
             db.set_state(message.from_user.id, SET_DEPARTMENT)
-            await bot.send_message(
-                message.from_user.id,
-                messages_base['input_faculty'],
-                reply_markup=ReplyKeyboardRemove(),
-            )
+
+        keyboard = ReplyKeyboardMarkup(resize_keyboard=True)
+        for faculty in faculty_base.values():
+            button = KeyboardButton(text=faculty)
+            keyboard.add(button)
+        
+        await bot.send_message(
+            message.from_user.id,
+            messages_base['input_faculty'],
+            reply_markup=keyboard,
+        )
     else:
         await bot.send_message(
             message.from_user.id,
@@ -121,7 +123,8 @@ async def set_department_message(message):
         db.set_state(message.from_user.id, SET_SOCIAL_NETWORK)
         await bot.send_message(
             message.from_user.id,
-            messages_base['input_social_network']
+            messages_base['input_social_network'],
+            reply_markup=ReplyKeyboardRemove()
         )
 
 

@@ -5,7 +5,7 @@ from data.states import *
 from data.config import DB_LOCATION
 import logic.meeting as meet
 from utils.yaml_util import load_yml_file
-from data.messages_base import messages_base
+from data.yml_config import messages_base
 
 
 @dp.message_handler(lambda message: meet.is_before_meeting(message.from_user.id))

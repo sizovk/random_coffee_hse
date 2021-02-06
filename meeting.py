@@ -6,7 +6,7 @@ from misc import dp, bot
 from aiogram.utils import executor
 from random import randint, choice
 from data.cities import cities
-from data.messages_base import messages_base
+from data.yml_config import messages_base
 
 
 async def main():

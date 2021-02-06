@@ -2,7 +2,7 @@ from misc import dp, bot
 from utils.db_operations import UsersData
 from data.states import SET_EMAIL
 from data.config import DB_LOCATION
-from data.messages_base import messages_base
+from data.yml_config import messages_base
 
 
 @dp.message_handler(commands=['help'])
