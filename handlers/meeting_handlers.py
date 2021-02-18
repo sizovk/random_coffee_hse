@@ -4,6 +4,8 @@ from utils.db_operations import UsersData
 from data.states import *
 from data.config import DB_LOCATION
 import logic.meeting as meet
+from utils.yaml_util import load_yml_file
+from data.yml_config import messages_base
 
 
 @dp.message_handler(lambda message: meet.is_before_meeting(message.from_user.id))
@@ -11,7 +13,7 @@ async def message_before_meeting(message):
     if message.text == 'Да':
         await bot.send_message(
             message.from_user.id,
-            'Скоро мы подберем вам пару.',
+            messages_base['accept_meeting'],
             reply_markup=ReplyKeyboardRemove(),
         )
         with UsersData(DB_LOCATION) as db:
@@ -19,7 +21,7 @@ async def message_before_meeting(message):
     elif message.text == 'Нет':
         await bot.send_message(
             message.from_user.id,
-            'ок',
+            messages_base['not_accept_meeting'],
             reply_markup=ReplyKeyboardRemove(),
         )
         with UsersData(DB_LOCATION) as db:
@@ -27,7 +29,7 @@ async def message_before_meeting(message):
     else:
         await bot.send_message(
             message.from_user.id,
-            'Некорректный ответ. Введите еще раз.'
+            messages_base['wrong_answer']
         )
 
 
@@ -35,5 +37,5 @@ async def message_before_meeting(message):
 async def message_accept_meeting(message):
     await bot.send_message(
         message.from_user.id,
-        'Ожидайте. Скоро мы подберем вам пару.',
+        messages_base['accept_meeting'],
     )

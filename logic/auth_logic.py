@@ -52,13 +52,13 @@ def is_correct_auth_code(auth_code, chat_id):
 
 
 def send_auth_code(chat_id):
-    #auth_code = randint(1000, 9999)
-    auth_code = '0000'
-    with UsersData(DB_LOCATION) as db:
-        db.set_auth_code(chat_id, auth_code)
+    auth_code = randint(1000, 9999)
     with UsersData(DB_LOCATION) as db:
         email = db.get_email(chat_id)
-
+    if email == "test@hse.ru":
+        auth_code = '0000'
+    with UsersData(DB_LOCATION) as db:
+        db.set_auth_code(chat_id, auth_code)
     smtpObj = smtplib.SMTP('smtp.gmail.com', 587)
     smtpObj.starttls()
     smtpObj.login("randomcoffeehse@gmail.com", "qwerty!23")
