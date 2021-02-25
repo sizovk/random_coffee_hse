@@ -67,3 +67,6 @@ unsuccessful_matching: |
 
 successful_matching: |
   Мы подобрали вам пару, {social_network}
+
+not_admin: |
+  Эта команда только для администраторов.
