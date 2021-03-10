@@ -50,7 +50,8 @@ async def process_list_command(message):
         "Успешно."
     )
     with UsersData(DB_LOCATION) as db:
-        db.set_state(message.from_user.id, AUTHORIZED)
+        db.set_state(first_id, AUTHORIZED)
+        db.set_state(second_id, AUTHORIZED)
 
 
 def is_admin_meet(chat_id):
